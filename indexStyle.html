@@ -1,0 +1,222 @@
+<!-- Presented by BrilliantPy -->
+
+<style>
+  html, body {
+  width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+  /* Style for profile image */
+  .profile-img {
+    width: 250px;
+    height: 250px;
+    object-fit: cover;
+    cursor: pointer;
+  }
+
+  /* Style for modal image */
+  #myImg {
+    border-radius: 5px;
+    cursor: pointer;
+    transition: 0.3s;
+  }
+
+  #myImg:hover {
+    opacity: 0.7;
+  }
+
+  /* Style for modal */
+  .modal {
+    display: none;
+    position: fixed;
+    z-index: 1;
+    padding-top: 10%;
+    padding-bottom: 10%;
+    left: 0;
+    top: 0;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.9);
+  }
+
+  /* Style for modal content */
+  .modal-content {
+    margin: auto;
+    display: block;
+    max-width: 40%;
+    /* Adjust the maximum width of the image */
+    max-height: 90vh;
+    /* Adjust the maximum height of the image */
+  }
+
+  /* Style for modal open */
+  .modal-open {
+    overflow: hidden;
+  }
+
+  /* Animation for modal content */
+  .modal-content,
+  #caption {
+    animation-name: zoom;
+    animation-duration: 0.6s;
+  }
+
+  @keyframes zoom {
+    from {
+      transform: scale(0);
+    }
+
+    to {
+      transform: scale(1);
+    }
+  }
+
+  /* Style for close button */
+  .close:hover,
+  .close:focus {
+    color: #bbb;
+    text-decoration: none;
+    cursor: pointer;
+  }
+
+  /* Responsive style for smaller screens */
+  @media only screen and (max-width: 700px) {
+    .modal-content {
+      width: 100%;
+    }
+  }
+
+  /* Style for table data */
+  table{
+    width: 100%;
+  }
+  td {
+    width: 100%;
+    text-align: left;
+  }
+  .spacer{
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* Center align text in table header and body */
+  thead,
+  tbody {
+    text-align: center;
+  }
+
+  /* Padding adjustment for data table wrapper */
+  #data-table_wrapper {
+    padding-bottom: 12px;
+  }
+
+  /* Hide scrollbar */
+  /* ::-webkit-scrollbar {
+    width: 0px;
+    background: transparent;
+  } */
+
+  /* Style for scrollbar */
+  ::-webkit-scrollbar {
+    width: 10px;
+    /* Set the width of the scrollbar */
+  }
+
+  /* Track */
+  ::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    /* Color of the track */
+  }
+
+  /* Handle */
+  ::-webkit-scrollbar-thumb {
+    background: #888;
+    /* Color of the scroll handle */
+  }
+
+  /* Handle on hover */
+  ::-webkit-scrollbar-thumb:hover {
+    background: #555;
+    /* Color of the scroll handle on hover */
+  }
+
+  /* Style for buttons */
+  .btn {
+    border: none;
+    padding: 10px 20px;
+    cursor: pointer;
+    border-radius: 5px;
+    transition: all 0.3s ease;
+  }
+
+  /* Style for primary button */
+  .btn-primary {
+    background-color: #007bff;
+    color: #fff;
+  }
+
+  .btn-primary:hover {
+    background-color: #0056b3;
+  }
+
+  /* Style for success button */
+  .btn-success {
+    background-color: #28a745;
+    color: #fff;
+  }
+
+  .btn-success:hover {
+    background-color: #218838;
+  }
+
+  /* Style for danger button */
+  .btn-danger {
+    background-color: #dc3545;
+    color: #fff;
+  }
+
+  .btn-danger:hover {
+    background-color: #c82333;
+  }
+
+  /* Style for warning button */
+  .btn-warning {
+    background-color: #ffc107;
+    color: #212529;
+  }
+
+  .btn-warning:hover {
+    background-color: #e0a800;
+  }
+
+  /* Style for close button */
+  .close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+  }
+
+  .close:hover,
+  .close:focus {
+    color: black;
+    text-decoration: none;
+    cursor: pointer;
+  }
+
+  .table-container {
+      display: flex;
+      justify-content: center; /* Centers the table horizontally */
+    }
+
+    #data-table {
+      width: auto; /* Allows the table to size itself naturally */
+      max-width: 100%; /* Ensures the table doesn't overflow the page width */
+      table-layout: auto; /* Columns adjust based on content */
+    }
+
+    .container {
+      padding: 20px;
+    }
+</style>
