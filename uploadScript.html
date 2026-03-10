@@ -1,0 +1,65 @@
+<script src="https://code.jquery.com/jquery-3.7.1.js"></script>
+<script>
+$(document).ready(function () {
+  $('#uploadButton').click(function () {
+    var name = $('#inputName').val().trim();
+    var phone = $('#inputPhone').val().trim();
+    var deposit = $('#inputDeposit').val().trim();
+    var parcelFile = $('#parcelFile')[0].files[0];
+    var itemFile = $('#itemFile')[0].files[0];
+    // console.log(phone)
+
+    if (name && phone && parcelFile && itemFile && deposit) {
+      const fr1 = new FileReader();
+      fr1.onload = function (e1) {
+        const data1 = e1.target.result.split(",");
+        const obj1 = {
+          fileName: parcelFile.name,
+          mimeType: data1[0].match(/:(\w.+);/)[1],
+          data: data1[1]
+        };
+
+        const fr2 = new FileReader();
+        fr2.onload = function (e2) {
+          const data2 = e2.target.result.split(",");
+          const obj2 = {
+            fileName: itemFile.name,
+            mimeType: data2[0].match(/:(\w.+);/)[1],
+            data: data2[1]
+          };
+
+          google.script.run.withSuccessHandler(function () {
+            $('#inputName').val('');
+            $('#inputPhone').val('');
+            $('#parcelFile').val('');
+            $('#itemFile').val('');
+            $('#inputDeposit').val('');
+          }).addData(name, phone, obj1, obj2, deposit);
+        };
+
+        fr2.readAsDataURL(itemFile);
+      };
+
+      fr1.readAsDataURL(parcelFile);
+    } else {
+      alert('กรอกข้อมูลให้หมด');
+    }
+  });
+});
+
+// document.querySelector('form').addEventListener('submit', function(e) {
+//     const phoneInput = document.getElementById('inputPhone');
+//     // Ensure the leading zero is present
+//     if (phoneInput.value && phoneInput.value[0] !== '0') {
+//         phoneInput.value = '0' + phoneInput.value; // Add leading zero
+//     }
+//   });
+
+$('form').on('submit', function(e) {
+    const phoneInput = $('#inputPhone');
+    // Ensure the leading zero is present
+    if (phoneInput.val() && phoneInput.val()[0] !== '0') {
+        phoneInput.val('0' + phoneInput.val()); // Add leading zero
+    }
+});
+</script>
