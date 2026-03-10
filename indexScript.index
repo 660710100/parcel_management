@@ -1,0 +1,224 @@
+<script src="https://code.jquery.com/jquery-3.7.1.js"></script>
+<script src="https://cdn.datatables.net/1.10.23/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.10.23/js/dataTables.bootstrap4.min.js"></script>
+<script>
+  // มาแก้
+  $(document).ready(function () {
+    readData();
+  });
+
+  function readData() {
+    google.script.run.withSuccessHandler(showData).getData();
+
+    function showData(dataArray) {
+      try {
+        dataArray = JSON.parse(dataArray);
+      } catch (e) {
+        dataArray = []; // Handle parsing error if needed
+      }
+      $('#data-table').DataTable({
+        data: dataArray,
+        columns: [
+          { "title": "ID" },
+          { "title": "ว/ด/ป", "orderable": false },
+          { "title": "เบอร์โทร", "orderable": false },
+          { "title": "ชื่อ" },
+          { "title": "หน้ากล่อง", "render": renderImage, "orderable": false },
+          { "title": "ของที่อยู่ในกล่อง", "render": renderImage, "orderable": false },
+          { "title": "ราคาเทิร์น" },
+          { "title": "ราคาขาย" },
+          { "title": "ยอดฝากรวม" },
+          { "title": "ยอดฝาก" },
+          { "title": "สถานะ" },
+          { "render": renderActions, "orderable": false }
+        ],
+        "columnDefs":[
+            {"class":"spacer", "targets": 3}
+        ],
+        order: [[0, 'desc']],  // Order by the first column ("ID") in descending order
+        destroy: true
+      });
+    }
+  }
+
+  function renderImage(data) {
+    let imgHTML = '<img class="profile-img" src="' + formatUrlImg(data) + '" onclick="openModal(this.src)">';
+    return imgHTML;
+  }
+
+  function renderActions(data) {
+    return `
+          <div class="btn-group" role="group">
+              <button type="button" class="btn btn-warning text-white" onclick="getIdData(this)"><i class="fas fa-edit"></i></button>
+              <button type="button" class="btn btn-danger" onclick="removeData(this)"><i class="fas fa-trash"></i></button>
+          </div>
+      `;
+  }
+
+  function getIdData(ele) {
+    let idData = $(ele).parents("tr").find("td:nth-child(1)").text();
+    let rowId = $(ele).closest('tr');
+    editMode(rowId);
+    google.script.run.getIdData(idData);
+  }
+
+
+  function editMode(row) {
+    // Store original values
+    // row.data('originalValues', {
+//       turnPrice: row.find('td:eq(6)').html(),
+//       sellPrice: row.find('td:eq(7)').html(),
+//       total: row.find('td:eq(8)').html(),
+//       deposit: row.find('td:eq(9)').html(),
+//       status: row.find('td:eq(10)').html(),
+//       actions: row.find('td:eq(11)').html()
+//     });
+    const originalValues = {};
+    const fields = ["turnPrice", "sellPrice", "total", "deposit", "status", "actions"];
+    
+    fields.forEach((field, index) => {
+        originalValues[field] = row.find(`td:eq(${index + 6})`).html();
+    });
+
+    row.data('originalValues', originalValues);
+
+    // Extract total value and convert to number
+    const totalCell = row.find('td:eq(8)');
+    const totalValue = totalCell.text().trim();
+    const existingNumber = totalValue.match(/\d+/) ? parseInt(totalValue.match(/\d+/)[0], 10) : 0;
+
+    // Generate editable fields
+    const inputFields = [
+        { index: 6, id: "turn" },
+        { index: 7, id: "sell" },
+        { index: 9, id: "deposit" }
+    ];
+    
+    inputFields.forEach(({ index, id }) => {
+        row.find(`td:eq(${index})`).html(`<input type="text" class="form-control" id="${id}" value="${row.find(`td:eq(${index})`).text().trim()}">`);
+    });
+
+    // Editable total field with a button
+    totalCell.html(`
+        <div class="input-group">
+            <input type="number" class="form-control" id="total" value="${totalValue}">
+            <button class="btn btn-primary mt-2" type="button" onclick="addToTotal(this)">+ Add</button>
+        </div>
+    `);
+
+    // Status dropdown
+    const statusCell = row.find('td:eq(10)');
+    const currentStatus = statusCell.text().trim();
+    statusCell.html(`
+        <select class="form-select" id="clear">
+            <option value="เคลียร์" ${currentStatus === 'เคลียร์' ? 'selected' : ''}>เคลียร์</option>
+            <option value="ไม่เคลียร์" ${currentStatus === 'ไม่เคลียร์' ? 'selected' : ''}>ไม่เคลียร์</option>
+        </select>
+    `);
+
+    // Action buttons
+    row.find('td:eq(11)').html(`
+        <div class="btn-group">
+            <button type="button" class="btn btn-success" onclick="updateData(this)"><i class="fas fa-check"></i></button>
+            <button type="button" class="btn btn-danger" onclick="cancelEditMode(this)"><i class="fas fa-times"></i></button>
+        </div>
+    `);
+}
+
+
+function addToTotal(button) {
+    var input = $(button).closest('td').find('#total');
+    var currentValue = parseInt(input.val(), 10) || 0; // Ensure it's a number
+    var addValue = prompt("Enter the number to add:", "0");
+
+    if (addValue !== null) {
+        addValue = parseInt(addValue, 10);
+        if (!isNaN(addValue)) {
+            input.val(currentValue + addValue);
+        } else {
+            alert("ใส่ตัวเลข");
+        }
+    }
+}
+
+  function updateData(ele) {
+    var idData = $(ele).parents("tr").find("td:nth-child(1)").text();
+    var turn = $("#turn").val().trim();
+    var sell = $("#sell").val().trim();
+    var total = $("#total").val();
+    var clear = $("#clear").val();
+    var deposit = $("#deposit").val();
+
+    // Validate turn and sell are numeric
+    if ((turn != "" && !isNumeric(turn)) || (sell != "" && !isNumeric(sell))) {
+      // Handle validation error (e.g., show message, prevent submission)
+      alert("ใส่ตัวเลขเท่านั้น");
+      return;
+    }
+    event.preventDefault();
+    google.script.run.withSuccessHandler(readData).updateData(idData, turn, sell, clear, total, deposit);
+  }
+
+  function isNumeric(value) {
+    return !isNaN(parseFloat(value)) && isFinite(value);
+  }
+
+  function removeData(ele) {
+    var idData = $(ele).parents("tr").find("td:nth-child(1)").text();
+    event.preventDefault();
+
+    // Confirmation dialog
+    if (confirm("ข้อมูลจะถูกลบ")) {
+        google.script.run.withSuccessHandler(readData).removeData(idData);
+    }
+}
+
+function cancelEditMode(button) {
+    var row = $(button).closest('tr');
+    var originalValues = row.data('originalValues');
+
+    // Restore original values using a loop
+    // row.find('td:eq(6)').html(originalValues.turnPrice);
+    // row.find('td:eq(7)').html(originalValues.sellPrice);
+    // row.find('td:eq(8)').html(originalValues.total);
+    // row.find('td:eq(9)').html(originalValues.deposit);
+    // row.find('td:eq(10)').html(originalValues.status);
+    // row.find('td:eq(11)').html(originalValues.actions);
+    ["turnPrice", "sellPrice", "total", "deposit", "status", "actions"].forEach((field, index) => {
+        row.find(`td:eq(${index + 6})`).html(originalValues[field]);
+    });
+}
+
+
+  function formatUrlImg(link) {
+    var newLink = link.replace("drive.google.com/open?id=", "drive.google.com/thumbnail?id=");
+    newLink = newLink.replace("drive.google.com/file/d/", "drive.google.com/thumbnail?id=");
+    newLink = newLink.split('/view')[0];
+    // newLink = newLink.replace("/view?usp=sharing", "");
+    // newLink = newLink.replace("/view?usp=drivesdk", "");
+    // newLink = newLink.replace("/view", "");
+    return newLink;
+  }
+
+  function hdImg(link) {
+    return link.replace("drive.google.com/thumbnail?id=", "lh5.googleusercontent.com/d/");
+  }
+
+  function openModal(src) {
+    src = hdImg(src);
+    $("#myModal").css("display", "block");
+    $("#img01").attr("src", src);
+    $("body").addClass("modal-open");
+    $(".close").on("click", closeModal);
+    $(window).on("click", function (event) {
+      if (event.target == $("#myModal")[0]) {
+        closeModal();
+      }
+    });
+  }
+
+  function closeModal() {
+    $("#myModal").css("display", "none");
+    $("body").removeClass("modal-open");
+  }
+</script>
